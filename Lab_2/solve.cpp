@@ -1,64 +1,77 @@
-#include <string>
-#include <iostream>
-#include <algorithm>
-#include <exception>
-#include <math.h>
-using namespace std;
-
-class Decimal {
-    private: 
-	size_t size;
-	size_t capacity;
-	unsigned char* digits;
-
-    public:
+#include "solve.h"
 
 bool IsDecimal(char value) {
-	return value >= '0' && value <= '9';
+	return (value >= '0' && value <= '9');
 }
 
-void Init(size_t n) {
+void Decimal::Init(size_t n) {
 	size = n;
-	capacity = size * 2;
-	digits = new unsigned char[capacity];
+	capacity = size;
+	digits = new char[capacity];
+    for(int i = 0 ; i < n; ++i) 
+        digits[i] = i + '0';
 }
 
-void Delete() {
-    if(digits != nullptr) {
-	    delete[] digits;
-	    digits = nullptr;
+void Decimal::Err() {
+    if (digits != nullptr) {
+        size = 0;
+        capacity = 0;
+        delete[] digits;
+        digits = nullptr;
     }
-    size = 0;
-	capacity = 0;
-	throw logic_error("This digit doesn't belong to Decimal system");
+    throw logic_error("This digit doesn't belong to Decimal system");
 }
 
-Decimal() : size(0), capacity(0), digits{ nullptr } {}
+Decimal::~Decimal() noexcept {
+    if (digits != nullptr) {
+        size = 0;
+        capacity = 0;
+        delete[] digits;
+        digits = nullptr;
+    }
+}
 
-Decimal(const size_t& n, unsigned char t) {
+Decimal::Decimal() : size(0), capacity(0), digits{ nullptr } {}
+
+Decimal::Decimal(const size_t& n, char t) {
+    Decimal();
 	if (!IsDecimal(t))
-		Delete();
+		Err();
 	Init(n);
-	for (size_t i = 0; i < size; ++i)
+	for (int i = 0; i < size; ++i)
 		digits[i] = t;
 }
 
-Decimal(const string& t) {
-	for (auto elem : t) if (!IsDecimal(elem)) Delete();
+Decimal::Decimal(const string& t) {
+    Decimal();
+	for (char elem : t) 
+        if (!IsDecimal(elem)) Err();
 	Init(t.size());
 	for (size_t i = 0; i < size; ++i)
 		digits[i] = t[size - i - 1];
 }
 
-Decimal(const Decimal& other) {
+Decimal::Decimal(const initializer_list<char> &t) {
+    Decimal();
+	for (char elem : t) 
+        if (!IsDecimal(elem)) Err();
+	Init(t.size());
+    int i = size - 1;
+    for(char c : t) {
+        digits[i] = c;
+        --i;
+    }
+}
+
+Decimal::Decimal(const Decimal& other) {
 	size = other.size;
 	capacity = other.capacity;
-	digits = new unsigned char[capacity];
+	digits = new char[capacity];
 	for (size_t i = 0; i < size; ++i)
 		digits[i] = other.digits[i];
 }
 
-Decimal(Decimal&& other) {
+Decimal::Decimal(Decimal&& other)noexcept {
 	size = other.size;
 	capacity = other.capacity;
 	digits = other.digits;
@@ -67,19 +80,8 @@ Decimal(Decimal&& other) {
 	other.digits = nullptr;
 }
 
-friend void reallocate(Decimal & D, const size_t& newcapacity) {
-	unsigned char* newArray = new unsigned char[newcapacity];
-	D.capacity = newcapacity;
-	for (size_t i = 0; i < D.size; ++i)
-		newArray[i] = D.digits[i];
-	for (size_t i = D.size; i < D.capacity; ++i)
-        newArray[i] = '0';  
-	delete[] D.digits;
-	D.digits = newArray;
-}
-
-void reallocate( const size_t& newcapacity) {
-	unsigned char* newArray = new unsigned char[newcapacity];
+void Decimal::reallocate( const size_t& newcapacity) {
+	char* newArray = new char[newcapacity];
 	capacity = newcapacity;
 	for (size_t i = 0; i < size; ++i)
 		newArray[i] = digits[i];
@@ -89,20 +91,11 @@ void reallocate( const size_t& newcapacity) {
 	digits = newArray;
 }
 
-size_t getsize() {
+size_t Decimal::getsize() const {
 	return size;
 }
 
-~Decimal() {
-    if(digits != nullptr) {
-	    delete[] digits;
-	    digits = nullptr;
-    }
-    size = 0;
-	capacity = 0;
-}
-
-string getstring() {
+string Decimal::getvalue()const {
 	string s, ans;
 	for (size_t i = 0; i < size; ++i)
 		s += digits[i];
@@ -111,13 +104,17 @@ string getstring() {
 	return ans;
 }
 
-friend ostream& operator << (ostream& out, Decimal& obj) {
+ostream& operator << (ostream& out, Decimal& obj) {
+    if(obj.size == 0) {
+        out << 0;
+        return out;
+    }
 	for (int i = obj.size - 1; i >= 0; --i)
 		out << obj.digits[i];
 	return out;
 }
 
-void operator = (const Decimal& other) {
+void Decimal::operator = (const Decimal& other) {
 	if (capacity < other.capacity)
 		reallocate(other.capacity);
 	size = other.size;
@@ -125,7 +122,7 @@ void operator = (const Decimal& other) {
 		digits[i] = other.digits[i];
 }
 
-void operator = (Decimal&& other) {
+void Decimal::operator = (Decimal&& other) {
 	size = other.size;
 	capacity = other.capacity;
 	delete[] digits;
@@ -136,7 +133,7 @@ void operator = (Decimal&& other) {
 	other.size = 0;
 }
 
-void operator += (const Decimal& other) {
+void Decimal::operator += (const Decimal& other) {
 	reallocate(max(other.capacity, capacity) + 1);
 	int del = 0;
 	for (int i = 0; i < capacity; ++i) {
@@ -150,7 +147,7 @@ void operator += (const Decimal& other) {
 	}
 }
 
-void operator -= (const Decimal& other) {
+void Decimal::operator -= (const Decimal& other) {
 	if (size < other.size) {
 		throw logic_error("The size of left value is less than size of right value");
 	}
@@ -176,19 +173,19 @@ void operator -= (const Decimal& other) {
     }
 }
 
-friend Decimal operator + (const Decimal& l, const Decimal& r) {
+Decimal operator + (const Decimal& l, const Decimal& r) {
 	Decimal ans = l;
 	ans += r;
 	return ans;
 }
 
-friend Decimal operator - (const Decimal& l, const Decimal& r) {
+Decimal operator - (const Decimal& l, const Decimal& r) {
 	Decimal ans = l;
 	ans -= r;
 	return ans;
 }
 
-friend bool operator == (const Decimal& l, const Decimal& r) {
+bool operator == (const Decimal& l, const Decimal& r) {
 	if (l.size != r.size) return 0;
 	for (int i = 0; i < l.size; ++i) {
 		if (l.digits[i] != r.digits[i]) return 0;
@@ -196,11 +193,11 @@ friend bool operator == (const Decimal& l, const Decimal& r) {
 	return 1;
 }
 
-friend bool operator != (const Decimal& l, const Decimal& r) {
+bool operator != (const Decimal& l, const Decimal& r) {
 	return !(l == r);
 }
 
-friend bool operator < (const Decimal& l, const Decimal& r) {
+bool operator < (const Decimal& l, const Decimal& r) {
 	if (l.size != r.size) return l.size < r.size;
 
 	for (int i = l.size - 1; i >= 0; --i) {
@@ -209,15 +206,14 @@ friend bool operator < (const Decimal& l, const Decimal& r) {
 	return 0;
 }
 
-friend bool operator > (const Decimal& l, const Decimal& r) {
-	return (r < l) || (l == r);
+bool operator > (const Decimal& l, const Decimal& r) {
+	return (r < l) && (l != r);
 }
 
-friend bool operator >= (const Decimal& l, const Decimal& r) {
-	return r < l;
+bool operator >= (const Decimal& l, const Decimal& r) {
+	return l > r || l == r;
 }
 
-friend bool operator <= (const Decimal& l, const Decimal& r) {
-	return r > l;
+bool operator <= (const Decimal& l, const Decimal& r) {
+	return l < r || l == r;
 }
-};
