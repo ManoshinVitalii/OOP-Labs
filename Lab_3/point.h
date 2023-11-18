@@ -27,7 +27,4 @@ class Point final {
         friend istream& operator >> (istream& is, Point& point);
         friend Point getAv(const vector<Point> &p);
         friend bool operator < (const Point &point1, const Point &point2);
-        friend Point operator + (const Point &point1, const Point &point2);
-        friend Point operator - (const Point &point1, const Point &point2);
-        bool iszero();
 };
