@@ -53,18 +53,6 @@ Point getAv(const vector<Point> &p) {
 }
 
 bool operator < (const Point &point1, const Point &point2){
-    if(abs(point1.x - point2.x) < EPS) return point1.x < point2.x;
+    if(abs(point1.x - point2.x) > EPS) return point1.x < point2.x;
     return point1.y < point2.y;
-}
-
-Point operator + (const Point &point1, const Point &point2){
-    return {point1.x + point2.x, point1.y + point2.y};
-}
-
-Point operator - (const Point &point1, const Point &point2){
-    return {point1.x - point2.x, point1.y - point2.y};
-}
-
-bool Point::iszero(){
-    return fabs(x) < EPS && fabs(y) < EPS;
 }
