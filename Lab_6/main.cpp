@@ -1,64 +1,42 @@
-#include "headers/NPC.h"
-#include "headers/Knight.h"
-#include "headers/Pegasus.h"
-#include "headers/Dragon.h"
-#include "headers/Factory.h"
-#include "headers/Observers.h"
-#include "headers/DataMethods.h"
+#include "./header/Battle.h"
+#include <random>
+#include <chrono>
+#include <thread>
+#include "./header/FactoryHeroes.h"
 
-map<NpcType, shared_ptr<VisitorFight>> visitors = {
-    {KnightType, make_shared<KnightVisitor>()},
-    {PegasusType, make_shared<PegasusVisitor>()},
-    {DragonType, make_shared<DragonVisitor>()}
-};
+int main()
+{
+    std::mt19937 rnd(std::chrono::steady_clock::now().time_since_epoch().count());
+    std::cout << "Generating ..." << std::endl;
 
+    set_t arr;
+    Factory fact;
 
-ostream& operator << (ostream& os, const set<shared_ptr<NPC>>& array) {
-    for (auto& elem : array) 
-        elem->print();
-    return os;
-}
-
-void fight(const set<shared_ptr<NPC>>& array, set<shared_ptr<NPC>>& dead_list, size_t distance) {
-    for (const auto& attacker : array) 
-        for (const auto& defender : array) {
-            if (attacker != defender && attacker->is_close(defender, distance) && dead_list.find(defender) == dead_list.end()) 
-                if (defender->accept(visitors[attacker->gettype()], attacker)) {
-                    dead_list.insert(defender);
-
-                }
-        }
-}
-
-int main() {
-    srand(time(NULL));
-
-    set<shared_ptr<NPC>> array;
-
-    cout << "Generating ..." << endl;
-    for (size_t i = 0; i < 40; ++i) 
-        array.insert(Factory::Create(NpcType(rand() % 3), rand() % 500, rand() % 500));
-    cout << "Saving ..." << endl;
-    DataMethods::saveData(array, "npc.txt");
-
-    cout << "Loading..." << endl;
-    array = DataMethods::loadData("npc.txt");
-
-    cout << array;
-
-    cout << "Fighting..." << endl << array;
-    for (size_t distance = 0; distance <= 500 && !array.empty(); distance += 30) {
-        set<shared_ptr<NPC>> dead_list;
-
-        fight(array, dead_list, distance);
-        for (auto& dead : dead_list) {
-            array.erase(dead);
-        }
-        cout <<"time = " << distance << " Fight stats ----------\n";
-        cout << "distance = " << distance << "\n killed = " << dead_list.size() << "\n\n\n";
+    for (size_t i = 0; i < 30; ++i) {
+        HeroesClass r = static_cast<HeroesClass>((rnd() % 3) + 1);
+        arr.insert(fact.createHero(r, rnd() % 500, rnd() % 500));
     }
 
-    cout << "Survivors = " << endl << array;
+    std::cout << "Saving ..." << std::endl;
+    save(arr, "./npc.txt");
+
+    std::cout << "Loading ..." << std::endl;
+    arr = load("./npc.txt");
+
+    std::cout<<"Fight    \n\n\n\n";
+    for (size_t dist = DISTANCE_FIGHT; (dist <= 1000) && !(arr.empty()); dist += 50) {
+        auto kb = battle(arr);
+
+        for (auto & d : kb) {
+            arr.erase(d);
+        }
+
+        std::cout << "Fight stats ----------" << std::endl
+                  << "distance: " << DISTANCE_FIGHT << std::endl
+                  << "killed: " << kb.size() << "\n\n\n";
+    }
+
+    std::cout << "Survivors: " << arr;
 
     return 0;
 }
