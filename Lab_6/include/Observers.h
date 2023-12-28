@@ -1,20 +1,23 @@
 #pragma once
-#include "NPC.h"
 
-class TextObserver : public ObserverFight {
-    private:
-        TextObserver() {};
-    public:
-        static shared_ptr<ObserverFight> get();
-        void on_fight(const shared_ptr<NPC>& attacker, const shared_ptr<NPC>& defender, bool win) override;
+#include "Heroes.h"
+
+class TextObserver final : public IFightObserver
+{
+public:
+    TextObserver() = default;
+    ~TextObserver() = default;
+
+    static std::shared_ptr<IFightObserver> get();
+    void onFight(const std::shared_ptr<Heroes> attacker, const std::shared_ptr<Heroes> defender, bool win) override;
 };
 
-class FileObserver : public ObserverFight {
-    private:
-        string NPCname(const NpcType& type);
-        ofstream fs;
-        FileObserver() {};
-    public:
-        static shared_ptr<ObserverFight> get();
-        void on_fight(const shared_ptr<NPC>& attacker, const shared_ptr<NPC>& defender, bool win) override;
+class FileObserver final : public IFightObserver
+{
+public:
+    FileObserver() = default;
+    ~FileObserver() = default;
+
+    static std::shared_ptr<IFightObserver> get();
+    void onFight(const std::shared_ptr<Heroes> attacker, const std::shared_ptr<Heroes> defender, bool win) override;
 };
