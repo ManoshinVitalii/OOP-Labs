@@ -1,42 +1,47 @@
-#include "../headers/Knight.h"
+#include "../header/Knight.h"
 
-Knight::Knight() : NPC(KnightType, 0, 0) {}
-
-Knight::Knight(short x, short y) : NPC(KnightType, x, y) {}
-
-Knight::Knight(istream& in) : NPC(KnightType, in) {}
-
-bool KnightVisitor::visit(const shared_ptr<Knight>& defender) const {
+bool KnightVisitor::visit(const std::shared_ptr<Knight>& attacker) const {
     return 0;
 }
 
-bool KnightVisitor::visit(const shared_ptr<Pegasus>& defender) const {
-    return 0;
-}
-
-bool KnightVisitor::visit(const shared_ptr<Dragon>& defender) const {
+bool KnightVisitor::visit(const std::shared_ptr<Dragon>& attacker) const {
     return 1;
 }
 
-void Knight::save(ostream& out) {
-    out << KnightType << endl;
-    NPC::save(out);
+bool KnightVisitor::visit(const std::shared_ptr<Pegasus>& attacker) const {
+    return 0;
 }
 
-bool Knight::accept(const shared_ptr<VisitorFight>& attacker_visitor, const shared_ptr<NPC>& attacker) const {
-    shared_ptr<const NPC> npc_const_ptr = shared_from_this();
-    shared_ptr<NPC> npc_ptr = const_pointer_cast<NPC>(npc_const_ptr);
-    shared_ptr<Knight> defender = dynamic_pointer_cast<Knight>(npc_ptr);
+Knight::Knight(std::string hName, short int x, short int y) : Heroes(KNIGHT, hName, x, y) {}
+
+Knight::Knight(std::istream & is) : Heroes(KNIGHT, is) {}
+
+void Knight::print()
+{
+    std::cout << *this;
+}
+
+void Knight::save(std::ostream & os)
+{
+    os << KNIGHT << std::endl;
+    Heroes::save(os);
+}
+
+std::ostream & operator<<(std::ostream & os, Knight & sq)
+{
+    os << "Knight: " << *static_cast<Heroes*> (&sq) << std::endl;
+    return os;
+}
+
+int Knight::accept(const std::shared_ptr<Visitor>& attacker_visitor, const std::shared_ptr<Heroes>& attacker)
+{
+    std::shared_ptr<const Heroes> npc_const_ptr = shared_from_this();
+    std::shared_ptr<Heroes> npc_ptr = std::const_pointer_cast<Heroes>(npc_const_ptr);
+    std::shared_ptr<Knight> defender = std::dynamic_pointer_cast<Knight>(npc_ptr);
+
     bool result = attacker_visitor->visit(defender);
-    attacker->fight_notify(defender, result);
-    return result; 
-}
 
-ostream& operator << (ostream& out, Knight& person) {
-    out << "Knightr = " << *static_cast<NPC*>(&person) << endl;
-    return out;
-}
+    attacker->fightNotify(defender, result);
 
-void Knight::print() {
-    cout << *this;
+    return result;
 }
