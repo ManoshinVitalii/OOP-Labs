@@ -1,45 +1,48 @@
-#include "../headers/Pegasus.h"
+#include "../header/Pegasus.h"
 
-Pegasus::Pegasus() : NPC(PegasusType, 0, 0) {}
-
-Pegasus::Pegasus(short x, short y) : NPC(PegasusType, x, y) {}
-
-Pegasus::Pegasus(istream &in) : NPC(PegasusType, in) {}
-
-bool PegasusVisitor::visit(const shared_ptr<Knight> &defender) const {
+bool PegasusVisitor::visit(const std::shared_ptr<Knight>& attacker) const {
     return 0;
 }
 
-bool PegasusVisitor::visit(const shared_ptr<Pegasus> &defender) const {
+bool PegasusVisitor::visit(const std::shared_ptr<Dragon>& attacker) const {
     return 0;
 }
 
-bool PegasusVisitor::visit(const shared_ptr<Dragon> &defender) const {
+bool PegasusVisitor::visit(const std::shared_ptr<Pegasus>& attacker) const {
     return 0;
 }
 
-void Pegasus::save(ostream &out) {
-    out << PegasusType << endl;
-    NPC::save(out);
+
+Pegasus::Pegasus(std::string hName, short int x, short int y) : Heroes(PEGASUS, hName, x, y) {}
+
+Pegasus::Pegasus(std::istream & is) : Heroes(PEGASUS ,is) {}
+
+void Pegasus::print()
+{
+    std::cout << *this;
 }
 
-bool Pegasus::accept(const shared_ptr<VisitorFight> &attacker_visitor, const shared_ptr<NPC> &attacker) const {
-    shared_ptr<const NPC> npc_const_ptr = shared_from_this();
-    shared_ptr<NPC> npc_ptr = const_pointer_cast<NPC>(npc_const_ptr);
-    shared_ptr<Pegasus> defender = dynamic_pointer_cast<Pegasus>(npc_ptr);
+void Pegasus::save(std::ostream & os)
+{
+    os << PEGASUS << std::endl;
+    Heroes::save(os);
+}
+
+std::ostream & operator<<(std::ostream & os, Pegasus & wf)
+{
+    os << "Pegasus: " << *static_cast<Heroes*> (&wf) << std::endl;
+    return os;
+}
+
+int Pegasus::accept(const std::shared_ptr<Visitor>& attacker_visitor, const std::shared_ptr<Heroes>& attacker)
+{
+    std::shared_ptr<const Heroes> npc_const_ptr = shared_from_this();
+    std::shared_ptr<Heroes> npc_ptr = std::const_pointer_cast<Heroes>(npc_const_ptr);
+    std::shared_ptr<Pegasus> defender = std::dynamic_pointer_cast<Pegasus>(npc_ptr);
 
     bool result = attacker_visitor->visit(defender);
 
-    attacker->fight_notify(defender, result);
+    attacker->fightNotify(defender, result);
 
     return result;
-}
-
-ostream &operator<<(ostream &out, Pegasus &person) {
-    out << "Pegasusr = " << *static_cast<NPC *>(&person) << endl;
-    return out;
-}
-
-void Pegasus::print() {
-    cout << *this;
 }
