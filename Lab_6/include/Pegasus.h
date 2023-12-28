@@ -1,20 +1,21 @@
 #pragma once
-#include "NPC.h"
 
-class Pegasus : public NPC {
-    public:
-        Pegasus();
-        Pegasus(short, short);
-        Pegasus(istream&);
-        bool accept(const shared_ptr<VisitorFight>&, const shared_ptr<NPC>&) const override;
-        void save(ostream&) override;
-        void print() override;
-        friend ostream& operator << (ostream&, Pegasus&);
-        ~Pegasus() = default;
-};
+#include "Heroes.h"
 
-struct PegasusVisitor : public VisitorFight {
-    bool visit(const shared_ptr<Knight>&) const override;
-    bool visit(const shared_ptr<Pegasus>&) const override;
-    bool visit(const shared_ptr<Dragon>&) const override;
+struct PegasusVisitor : public Visitor 
+{
+    bool visit(const std::shared_ptr<Pegasus>&) const override;
+    bool visit(const std::shared_ptr<Dragon>&) const override;
+    bool visit(const std::shared_ptr<Knight>&) const override;
+};  
+
+class Pegasus : public Heroes {
+public:
+    Pegasus(std::string hName, short int x, short int y);
+    Pegasus(std::istream & is);
+
+    void print() override;
+    void save(std::ostream & os) override;
+    friend std::ostream & operator<<(std::ostream & os, Pegasus & wf);
+    virtual int accept(const std::shared_ptr<Visitor>& attacker_visitor, const std::shared_ptr<Heroes>& attacker) override;
 };
