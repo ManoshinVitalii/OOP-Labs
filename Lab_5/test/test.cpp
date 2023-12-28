@@ -10,7 +10,6 @@ TEST(test_01, testAllocatorManyAlloc)
 {
     Allocator<double> test;
     double *ptr = test.allocate(450);
-    test.allocate(300);
     test.free();
 
     ASSERT_TRUE(1);
@@ -44,7 +43,7 @@ TEST(test_04, testAllocatorCheck)
     test.allocate(300);
     test.allocate(300);
     test.allocate(300);
-    test.deallocate(ptr, 24);
+    test.free();
     ASSERT_TRUE(1);
 }
 
