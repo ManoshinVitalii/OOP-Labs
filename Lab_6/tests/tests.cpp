@@ -1,225 +1,249 @@
-#include "../headers/NPC.h"
-#include "../headers/Knight.h"
-#include "../headers/Pegasus.h"
-#include "../headers/Dragon.h"
-#include "../headers/Factory.h"
-#include "../headers/Observers.h"
-
 #include <gtest/gtest.h>
 
-TEST(test_01, Test)
+#include "../header/Battle.h"
+#include "../header/FactoryHeroes.h"
+
+TEST(test_01, KnightConstructorTest)
 {
-    shared_ptr<NPC> ptr = make_shared<Knight>(2, 2);
-    ASSERT_TRUE(ptr->gettype() == 0 && ptr->getX() == 2 && ptr->getY() == 2);
+
+    bool test = true;
+    try
+    {
+        Knight(getRandNameKn(), 17, 17);
+    }
+    catch (std::range_error &ex)
+    {
+        std::cerr << " new throw exception:" << ex.what() << std::endl;
+        test = false;
+    }
+
+    ASSERT_TRUE(test);
 }
 
-TEST(test_02, Test)
+TEST(test_02, PegasusConstructorTest)
 {
-    shared_ptr<NPC> ptr1 = make_shared<Dragon>(0, 0);
-    shared_ptr<NPC> ptr2 = make_shared<Pegasus>(10, 10);
-    ASSERT_TRUE(ptr1->is_close(ptr2, 20));
+
+    bool test = true;
+    try
+    {
+        Pegasus(getRandNamePg(), 17, 17);
+    }
+    catch (std::range_error &ex)
+    {
+        std::cerr << " new throw exception:" << ex.what() << std::endl;
+        test = false;
+    }
+
+    ASSERT_TRUE(test);
 }
 
-TEST(test_03, Test)
+TEST(test_03, DragonConstructorTest)
 {
-    shared_ptr<NPC> ptr1 = make_shared<Dragon>(0, 0);
-    shared_ptr<NPC> ptr2 = make_shared<Pegasus>(10, 10);
-    ASSERT_FALSE(ptr1->is_close(ptr2, 2));
+
+    bool test = true;
+    try
+    {
+        Dragon(getRandNameDr(), 17, 17);
+    }
+    catch (std::range_error &ex)
+    {
+        std::cerr << " new throw exception:" << ex.what() << std::endl;
+        test = false;
+    }
+
+    ASSERT_TRUE(test);
 }
 
-TEST(test_04, Test)
+TEST(test_04, CloseTest)
 {
-    KnightVisitor visitor;
-    shared_ptr<Knight> ptr = make_shared<Knight>();
-    ASSERT_FALSE(visitor.visit(ptr));
+
+    Knight a(getRandNameKn(), 1, 1);
+
+    std::shared_ptr<Heroes> f = std::shared_ptr<Heroes>(new Knight(getRandNameKn(), 99, 0));
+
+    ASSERT_TRUE(a.isClose(f));
 }
 
-TEST(test_05, Test)
+TEST(test_05, NoDeathFighterTest)
 {
-    KnightVisitor visitor;
-    shared_ptr<Pegasus> ptr = make_shared<Pegasus>();
-    ASSERT_FALSE(visitor.visit(ptr));
+
+    set_t array;
+
+    Factory factor;
+
+    array.insert(factor.createHero(KNIGHT, 0, 0));
+    array.insert(factor.createHero(PEGASUS, 100, 100));
+    array.insert(factor.createHero(DRAGON, 200, 200));
+
+    set_t dead = battle(array);
+
+    bool result = (dead.size() == 0);
+
+    EXPECT_TRUE(result);
 }
 
-TEST(test_06, Test)
+TEST(test_06, DeathFighterTest)
 {
-    KnightVisitor visitor;
-    shared_ptr<Dragon> ptr = make_shared<Dragon>();
-    ASSERT_TRUE(visitor.visit(ptr));
+    set_t array;
+
+    Factory factor;
+
+    array.insert(factor.createHero(KNIGHT, 0, 0));
+    array.insert(factor.createHero(PEGASUS, 0, 100));
+    array.insert(factor.createHero(DRAGON, 1, 99));
+
+    set_t dead = battle(array);
+
+    bool result = (dead.size() == 2);
+
+    EXPECT_TRUE(result);
 }
 
-TEST(test_07, Test)
+TEST(test_07, KnightFightTest)
 {
-    Knight s;
-    s.~Knight();
+    set_t array;
+
+    Factory factor;
+
+    array.insert(factor.createHero(KNIGHT, 0, 0));
+    array.insert(factor.createHero(KNIGHT, 0, 1));
+    array.insert(factor.createHero(KNIGHT, 0, 2));
+
+    set_t dead = battle(array);
+
+    bool result = (dead.size() == 0);
+
+    EXPECT_TRUE(result);
 }
 
-TEST(test_08, Test)
+TEST(test_08, PegasusFightTest)
 {
-    Knight s(2, 2);
-    ASSERT_TRUE(s.gettype() == 0 && s.getX() == 2 && s.getY() == 2);
+    set_t array;
+
+    Factory factor;
+
+    array.insert(factor.createHero(PEGASUS, 0, 0));
+    array.insert(factor.createHero(PEGASUS, 0, 1));
+    array.insert(factor.createHero(PEGASUS, 0, 2));
+
+    set_t dead = battle(array);
+
+    bool result = (dead.size() == 0);
+
+    EXPECT_TRUE(result);
 }
 
-TEST(test_09, Test)
+TEST(test_09, DragonFightTest)
 {
-    shared_ptr<NPC> defender = make_shared<Knight>(2, 2);
-    shared_ptr<NPC> attacker = make_shared<Dragon>(3, 3);
-    shared_ptr<VisitorFight> visitor_ptr = make_shared<DragonVisitor>();
-    ASSERT_FALSE(defender->accept(visitor_ptr, attacker));
+    set_t array;
+
+    Factory factor;
+
+    array.insert(factor.createHero(DRAGON, 0, 0));
+    array.insert(factor.createHero(DRAGON, 0, 1));
+    array.insert(factor.createHero(DRAGON, 0, 2));
+
+    set_t dead = battle(array);
+
+    bool result = (dead.size() == 0);
+
+    EXPECT_TRUE(result);
 }
 
-TEST(test_10, Test)
+TEST(test_10, KnightWithPegasusFightTest)
 {
-    shared_ptr<NPC> defender = make_shared<Knight>(2, 2);
-    shared_ptr<NPC> attacker = make_shared<Knight>(3, 3);
-    shared_ptr<VisitorFight> visitor_ptr = make_shared<KnightVisitor>();
-    ASSERT_FALSE(defender->accept(visitor_ptr, attacker));
+    set_t array;
+
+    Factory factor;
+    array.insert(factor.createHero(KNIGHT, 10, 10));
+    array.insert(factor.createHero(PEGASUS, 0, 0));
+    array.insert(factor.createHero(PEGASUS, 100, 0));
+
+    set_t dead = battle(array);
+
+    bool result = (dead.size() == 2);
+
+    EXPECT_FALSE(result);
 }
 
-TEST(test_11, Test)
+TEST(test_11, KnightWithDragonFightTest)
 {
-    shared_ptr<NPC> defender = make_shared<Knight>(2, 2);
-    shared_ptr<NPC> attacker = make_shared<Pegasus>(3, 3);
-    shared_ptr<VisitorFight> visitor_ptr = make_shared<PegasusVisitor>();
-    ASSERT_FALSE(defender->accept(visitor_ptr, attacker));
+    set_t array;
+
+    Factory factor;
+    array.insert(factor.createHero(KNIGHT, 10, 10));
+    array.insert(factor.createHero(DRAGON, 0, 0));
+    array.insert(factor.createHero(DRAGON, 100, 0));
+
+    set_t dead = battle(array);
+
+    bool result = (dead.size() == 2);
+
+    EXPECT_TRUE(result);
 }
 
-TEST(test_12, Test)
+TEST(test_12, PegasusWithKnightFightTest)
 {
-    PegasusVisitor visitor;
-    shared_ptr<Knight> ptr = make_shared<Knight>();
-    ASSERT_FALSE(visitor.visit(ptr));
+    set_t array;
+
+    Factory factor;
+    array.insert(factor.createHero(PEGASUS, 10, 10));
+    array.insert(factor.createHero(KNIGHT, 0, 0));
+    array.insert(factor.createHero(KNIGHT, 100, 0));
+
+    set_t dead = battle(array);
+
+    bool result = (dead.size() == 1);
+
+    EXPECT_FALSE(result);
 }
 
-TEST(test_13, Test)
+TEST(test_13, KnightWithDragonFightTest)
 {
-    PegasusVisitor visitor;
-    shared_ptr<Pegasus> ptr = make_shared<Pegasus>();
-    ASSERT_FALSE(visitor.visit(ptr));
+    set_t array;
+
+    Factory factor;
+    array.insert(factor.createHero(PEGASUS, 10, 10));
+    array.insert(factor.createHero(DRAGON, 0, 0));
+    array.insert(factor.createHero(DRAGON, 100, 0));
+
+    set_t dead = battle(array);
+
+    bool result = (dead.size() == 2);
+
+    EXPECT_FALSE(result);
 }
 
-TEST(test_14, Test)
+TEST(test_14, DragonWithKnightFightTest)
 {
-    PegasusVisitor visitor;
-    shared_ptr<Dragon> ptr = make_shared<Dragon>();
-    ASSERT_FALSE(visitor.visit(ptr));
+    set_t array;
+
+    Factory factor;
+    array.insert(factor.createHero(DRAGON, 10, 10));
+    array.insert(factor.createHero(KNIGHT, 0, 0));
+    array.insert(factor.createHero(KNIGHT, 100, 0));
+
+    set_t dead = battle(array);
+
+    bool result = (dead.size() == 1);
+
+    EXPECT_TRUE(result);
 }
 
-TEST(test_15, Test)
+TEST(test_15, DragonWithPegasusFightTest)
 {
-    Pegasus d;
-    d.~Pegasus();
-}
+    set_t array;
 
-TEST(test_16, Test)
-{
-    Pegasus d(2, 2);
-    ASSERT_TRUE(d.gettype() == 1 && d.getX() == 2 && d.getY() == 2);
-}
+    Factory factor;
+    array.insert(factor.createHero(DRAGON, 10, 10));
+    array.insert(factor.createHero(PEGASUS, 0, 0));
+    array.insert(factor.createHero(PEGASUS, 10, 0));
 
-TEST(test_17, Test)
-{
-    shared_ptr<NPC> defender = make_shared<Pegasus>(2, 2);
-    shared_ptr<NPC> attacker = make_shared<Dragon>(3, 3);
-    shared_ptr<VisitorFight> visitor_ptr = make_shared<DragonVisitor>();
-    ASSERT_TRUE(defender->accept(visitor_ptr, attacker));
-}
+    set_t dead = battle(array);
 
-TEST(test_18, Test)
-{
-    shared_ptr<NPC> defender = make_shared<Pegasus>(2, 2);
-    shared_ptr<NPC> attacker = make_shared<Knight>(3, 3);
-    shared_ptr<VisitorFight> visitor_ptr = make_shared<KnightVisitor>();
-    ASSERT_FALSE(defender->accept(visitor_ptr, attacker));
-}
+    bool result = (dead.size() == 2);
 
-TEST(test_19, Test)
-{
-    shared_ptr<NPC> defender = make_shared<Pegasus>(2, 2);
-    shared_ptr<NPC> attacker = make_shared<Pegasus>(3, 3);
-    shared_ptr<VisitorFight> visitor_ptr = make_shared<PegasusVisitor>();
-    ASSERT_FALSE(defender->accept(visitor_ptr, attacker));
-}
-
-TEST(test_20, Test)
-{
-    DragonVisitor visitor;
-    shared_ptr<Knight> ptr = make_shared<Knight>();
-    ASSERT_FALSE(visitor.visit(ptr));
-}
-
-TEST(test_21, Test)
-{
-    DragonVisitor visitor;
-    shared_ptr<Pegasus> ptr = make_shared<Pegasus>();
-    ASSERT_TRUE(visitor.visit(ptr));
-}
-
-TEST(test_22, Test)
-{
-    DragonVisitor visitor;
-    shared_ptr<Dragon> ptr = make_shared<Dragon>();
-    ASSERT_FALSE(visitor.visit(ptr));
-}
-
-TEST(test_23, Test)
-{
-    Dragon o;
-    o.~Dragon();
-}
-
-TEST(test_24, Test)
-{
-    Dragon o(2, 2);
-    ASSERT_TRUE(o.gettype() == 2 && o.getX() == 2 && o.getY() == 2);
-}
-
-TEST(test_25, Test)
-{
-    shared_ptr<NPC> defender = make_shared<Dragon>(2, 2);
-    shared_ptr<NPC> attacker = make_shared<Knight>(3, 3);
-    shared_ptr<VisitorFight> visitor_ptr = make_shared<KnightVisitor>();
-    ASSERT_TRUE(defender->accept(visitor_ptr, attacker));
-}
-
-TEST(test_26, Test)
-{
-    shared_ptr<NPC> defender = make_shared<Dragon>(2, 2);
-    shared_ptr<NPC> attacker = make_shared<Pegasus>(3, 3);
-    shared_ptr<VisitorFight> visitor_ptr = make_shared<PegasusVisitor>();
-    ASSERT_FALSE(defender->accept(visitor_ptr, attacker));
-}
-
-TEST(test_27, Test)
-{
-    shared_ptr<NPC> defender = make_shared<Dragon>(2, 2);
-    shared_ptr<NPC> attacker = make_shared<Dragon>(3, 3);
-    shared_ptr<VisitorFight> visitor_ptr = make_shared<DragonVisitor>();
-    ASSERT_FALSE(defender->accept(visitor_ptr, attacker));
-}
-
-TEST(test_28, Test)
-{
-    shared_ptr<NPC> ptr = Factory::Create(KnightType, 1, 1);
-    ASSERT_TRUE(ptr->gettype() == 0 && ptr->getX() == 1 && ptr->getY() == 1);
-}
-
-TEST(test_29, Test)
-{
-    shared_ptr<NPC> ptr = Factory::Create(DragonType, 1, 1);
-    ASSERT_TRUE(ptr->gettype() == 2 && ptr->getX() == 1 && ptr->getY() == 1);
-}
-
-TEST(test_30, Test)
-{
-    shared_ptr<NPC> ptr = Factory::Create(PegasusType, 1, 1);
-    ASSERT_TRUE(ptr->gettype() == 1 && ptr->getX() == 1 && ptr->getY() == 1);
-}
-
-TEST(test_31, Test)
-{
-    shared_ptr<NPC> ptr;
-    ASSERT_ANY_THROW(ptr = Factory::Create(NpcType(534), 2, 2));
+    EXPECT_TRUE(result);
 }
 
 int main(int argc, char **argv)
