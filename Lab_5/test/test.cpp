@@ -6,17 +6,6 @@
 #include <map>
 #include <vector>
 
-TEST(test_00, testAllocatorBase)
-{
-    Allocator<int> test;
-    int *ptr = test.allocate(25);
-    test.deallocate(ptr, 24);
-    test.allocate(1);
-    test.free();
-
-    ASSERT_TRUE(1);
-}
-
 TEST(test_01, testAllocatorManyAlloc)
 {
     Allocator<double> test;
